@@ -124,9 +124,9 @@ const handleApiError = (err: any, defaultMessage: string): string => {
 };
 
 export const useChat = (): UseChatReturn => {
+    const { data: session } = useSession()
     const [messages, setMessages] = useState<ChatMessage[]>([])
     const [isProcessing, setIsProcessing] = useState(false)
-    const { data: session } = useSession()
     const messagesRef = useRef<ChatMessage[]>([])
     const lastUserMessageRef = useRef<string>('')
 
@@ -149,8 +149,10 @@ export const useChat = (): UseChatReturn => {
     }, [messages])
 
     const processTransaction = useCallback(async (text: string): Promise<string> => {
-        const token = session?.backendAccessToken
-        if (!token) throw new Error('ไม่พบ token การยืนยันตัวตน')
+        const token = session?.backendAccessToken;
+        if (!token) {
+            throw new Error('ไม่พบ token การยืนยันตัวตน');
+        }
 
         try {
             const response = await axios.post<TransactionResponse>(
@@ -165,7 +167,8 @@ export const useChat = (): UseChatReturn => {
             )
             return formatTransactionResponse(response.data)
         } catch (err: any) {
-            throw new Error(handleApiError(err, 'เกิดข้อผิดพลาดในการส่งข้อความ'));
+            const errorMessage = handleApiError(err, 'เกิดข้อผิดพลาดในการส่งข้อความ')
+            throw new Error(errorMessage)
         }
     }, [session])
 

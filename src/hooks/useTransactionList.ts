@@ -52,8 +52,7 @@ export const useTransactionList = (): UseTransactionListReturn => {
         const token = session?.backendAccessToken;
 
         if (!token) {
-            let errMsg = 'ไม่พบ token การยืนยันตัวตน';
-            setError(errMsg);
+            setError('ไม่พบ token การยืนยันตัวตน');
             setIsLoading(false);
             return;
         }

@@ -70,14 +70,27 @@ const LoadingState = () => (
     </div>
 );
 
-const ErrorState = ({ error, onRetry }: { error: string, onRetry: () => void }) => (
-     <div className="flex flex-col items-center justify-center h-[calc(100vh-200px)] text-center px-4">
+const ErrorState = ({ error, onRetry, onLogout }: { error: string, onRetry: () => void, onLogout: () => void }) => (
+    <div className="flex flex-col items-center justify-center h-[calc(100vh-200px)] text-center px-4 space-y-4">
         <AlertCircle className="w-12 h-12 text-red-500" />
         <p className="mt-4 text-red-600">{error}</p>
-        <Button onClick={onRetry} variant="outline" className="mt-4">
-            <RefreshCw className="w-4 h-4 mr-2" />
-            ลองอีกครั้ง
-        </Button>
+        <div className="flex flex-col sm:flex-row gap-3 w-full max-w-xs">
+            <Button onClick={onRetry} variant="outline" className="flex-1">
+                <RefreshCw className="w-4 h-4 mr-2" />
+                ลองอีกครั้ง
+            </Button>
+            <Button 
+                onClick={onLogout} 
+                variant="outline" 
+                className="flex-1 border-red-200 text-red-600 hover:bg-red-50"
+            >
+                <LogOut className="w-4 h-4 mr-2" />
+                ออกจากระบบ
+            </Button>
+        </div>
+        <p className="text-sm text-gray-500 mt-2">
+            หากปัญหาไม่หายไป<br />กรุณาลองล็อกอินใหม่
+        </p>
     </div>
 );
 
@@ -128,7 +141,11 @@ export function ProfileTab({ onLogout }: ProfileTabProps) {
     }
 
     if (error || !user) {
-        return <ErrorState error={error || "ไม่พบข้อมูล"} onRetry={refetch} />;
+        return <ErrorState 
+            error={error || "ไม่พบข้อมูล"} 
+            onRetry={refetch} 
+            onLogout={onLogout} 
+        />;
     }
 
     return (

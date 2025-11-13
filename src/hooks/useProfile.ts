@@ -59,8 +59,7 @@ export const useProfile = (): UseProfileReturn => {
     const refetch = useCallback(async () => {
         const token = session?.backendAccessToken;
         if (!token) {
-            let errMsg = 'ไม่พบ token การยืนยันตัวตน';
-            setError(errMsg);
+            setError('ไม่พบ token การยืนยันตัวตน');
             setIsLoading(false);
             return;
         }
