@@ -62,6 +62,7 @@ export function ChatTab() {
     const [interimText, setInterimText] = useState("");
     const recognitionRef = useRef<SpeechRecognition | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const finalTranscriptRef = useRef("");
 
     const { messages, isProcessing, sendMessage } = useChat();
 
@@ -82,7 +83,6 @@ export function ChatTab() {
         }
 
         const recognition = new SpeechRecognition();
-        // ตั้งค่าให้ continuous เป็น true เพื่อรับเสียงต่อเนื่อง
         recognition.continuous = true;
         recognition.interimResults = true;
         recognition.lang = 'th-TH';
@@ -91,6 +91,7 @@ export function ChatTab() {
             setIsListening(true);
             setInputValue("");
             setInterimText("");
+            finalTranscriptRef.current = "";
         };
 
         recognition.onresult = (event: SpeechRecognitionEvent) => {
@@ -111,10 +112,11 @@ export function ChatTab() {
             }
 
             if (finalTranscript) {
-                setInputValue(prev => {
-                    const newValue = prev ? `${prev} ${finalTranscript}` : finalTranscript;
-                    return newValue.trim();
-                });
+                finalTranscriptRef.current = finalTranscriptRef.current 
+                    ? `${finalTranscriptRef.current} ${finalTranscript}`.trim()
+                    : finalTranscript;
+                
+                setInputValue(finalTranscriptRef.current);
                 setInterimText("");
             }
         };
@@ -123,10 +125,7 @@ export function ChatTab() {
             console.error('Speech recognition error:', event.error);
             setIsListening(false);
             setInterimText("");
-
-            if (event.error === 'not-allowed') {
-                console.error('กรุณาอนุญาตการใช้งานไมโครโฟนใน browser');
-            }
+            finalTranscriptRef.current = "";
         };
 
         recognition.onend = () => {
@@ -157,6 +156,7 @@ export function ChatTab() {
         try {
             setInputValue("");
             setInterimText("");
+            finalTranscriptRef.current = "";
             recognitionRef.current.start();
         } catch (error) {
             console.error('Error starting speech recognition:', error);
@@ -172,11 +172,14 @@ export function ChatTab() {
                 setIsListening(false);
                 
                 if (interimText.trim()) {
-                    setInputValue(prev => {
-                        const newValue = prev ? `${prev} ${interimText}` : interimText;
-                        return newValue.trim();
-                    });
+                    const combinedText = finalTranscriptRef.current 
+                        ? `${finalTranscriptRef.current} ${interimText}`.trim()
+                        : interimText;
+                    
+                    setInputValue(combinedText);
+                    finalTranscriptRef.current = combinedText;
                 }
+                
                 setInterimText("");
             } catch (error) {
                 console.error('Error stopping speech recognition:', error);
@@ -192,6 +195,7 @@ export function ChatTab() {
         await sendMessage(textToSend);
         setInputValue("");
         setInterimText("");
+        finalTranscriptRef.current = "";
     };
 
     const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -204,9 +208,12 @@ export function ChatTab() {
     const handleQuickExampleClick = (example: string) => {
         setInputValue(example);
         setInterimText("");
+        finalTranscriptRef.current = "";
     };
 
-    const displayText = interimText ? `${inputValue} ${interimText}`.trim() : inputValue;
+    const displayText = interimText 
+        ? `${inputValue} ${interimText}`.trim() 
+        : inputValue;
 
     return (
         <div className="flex flex-col h-[calc(100vh-140px)] bg-white">
@@ -315,6 +322,7 @@ export function ChatTab() {
                             value={displayText}
                             onChange={(e) => {
                                 setInputValue(e.target.value);
+                                finalTranscriptRef.current = e.target.value;
                                 setInterimText("");
                             }}
                             onKeyPress={handleKeyPress}
@@ -349,15 +357,6 @@ export function ChatTab() {
                         <Send className="w-4 h-4" />
                     </Button>
                 </div>
-
-                {/* Status Message */}
-                {isListening && (
-                    <div className="mt-2 text-center">
-                        <p className="text-sm text-red-500 animate-pulse">
-                            🎤 กำลังฟังเสียง... กดปุ่มหยุดเมื่อพูดเสร็จ
-                        </p>
-                    </div>
-                )}
 
                 {/* Browser Support Warning */}
                 {!speechSupported && (
