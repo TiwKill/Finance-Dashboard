@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useSession } from 'next-auth/react';
 
-interface UserProfile {
+export interface UserProfile {
     id: string;
     email: string;
     first_name: string | null;

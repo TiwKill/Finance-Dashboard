@@ -59,7 +59,7 @@ export default function Home() {
     return (
         <div className="min-h-screen bg-white flex flex-col">
             {/* Header */}
-            <div className="border-b border-gray-200 flex-shrink-0">
+            <div className="border-b border-gray-200 shrink-0">
                 <div className="px-6 py-4 flex items-center justify-between">
                     <h1 className="text-black">รายรับ-รายจ่าย</h1>
                     <div className="text-sm text-gray-500">
@@ -124,7 +124,7 @@ export default function Home() {
                 </div>
             </div>
 
-            <div className="h-16 flex-shrink-0"></div>
+            <div className="h-16 shrink-0"></div>
         </div>
     );
 }
