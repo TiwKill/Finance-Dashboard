@@ -112,11 +112,13 @@ export function ChatTab() {
             }
 
             if (finalTranscript) {
-                finalTranscriptRef.current = finalTranscriptRef.current 
-                    ? `${finalTranscriptRef.current} ${finalTranscript}`.trim()
-                    : finalTranscript;
-                
-                setInputValue(finalTranscriptRef.current);
+                if (!finalTranscriptRef.current.includes(finalTranscript.trim())) {
+                    finalTranscriptRef.current = finalTranscriptRef.current
+                        ? `${finalTranscriptRef.current} ${finalTranscript}`.trim()
+                        : finalTranscript.trim();
+
+                    setInputValue(finalTranscriptRef.current);
+                }
                 setInterimText("");
             }
         };
@@ -170,16 +172,7 @@ export function ChatTab() {
             try {
                 recognitionRef.current.stop();
                 setIsListening(false);
-                
-                if (interimText.trim()) {
-                    const combinedText = finalTranscriptRef.current 
-                        ? `${finalTranscriptRef.current} ${interimText}`.trim()
-                        : interimText;
-                    
-                    setInputValue(combinedText);
-                    finalTranscriptRef.current = combinedText;
-                }
-                
+
                 setInterimText("");
             } catch (error) {
                 console.error('Error stopping speech recognition:', error);
@@ -211,8 +204,8 @@ export function ChatTab() {
         finalTranscriptRef.current = "";
     };
 
-    const displayText = interimText 
-        ? `${inputValue} ${interimText}`.trim() 
+    const displayText = interimText
+        ? `${inputValue} ${interimText}`.trim()
         : inputValue;
 
     return (
@@ -228,7 +221,7 @@ export function ChatTab() {
                         <p className="text-sm text-gray-500 mt-1 mb-6">
                             พิมพ์รายรับหรือรายจ่าย หรือใช้เสียงพูดเพื่อบันทึกข้อมูล
                         </p>
-                        
+
                         {/* Quick Section */}
                         <div className="max-w-md mx-auto">
                             <p className="text-sm text-gray-500 mb-3">ลองใช้ข้อความเหล่านี้:</p>
