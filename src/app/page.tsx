@@ -57,9 +57,9 @@ export default function Home() {
     }
 
     return (
-        <div className="min-h-screen bg-white">
+        <div className="min-h-screen bg-white flex flex-col">
             {/* Header */}
-            <div className="border-b border-gray-200">
+            <div className="border-b border-gray-200 flex-shrink-0">
                 <div className="px-6 py-4 flex items-center justify-between">
                     <h1 className="text-black">รายรับ-รายจ่าย</h1>
                     <div className="text-sm text-gray-500">
@@ -69,29 +69,29 @@ export default function Home() {
             </div>
 
             {/* Content */}
-            <div className="pb-20">
-                <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-                    <TabsContent value="chat" className="mt-0">
+            <div className="flex-1 overflow-hidden">
+                <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full h-full">
+                    <TabsContent value="chat" className="mt-0 h-full">
                         <ChatTab />
                     </TabsContent>
-                    <TabsContent value="overview" className="mt-0">
+                    <TabsContent value="overview" className="mt-0 h-full">
                         <OverviewTab />
                     </TabsContent>
-                    <TabsContent value="transactions" className="mt-0">
+                    <TabsContent value="transactions" className="mt-0 h-full">
                         <TransactionListTab />
                     </TabsContent>
-                    <TabsContent value="profile" className="mt-0">
+                    <TabsContent value="profile" className="mt-0 h-full">
                         <ProfileTab onLogout={handleLogout} />
                     </TabsContent>
                 </Tabs>
             </div>
 
             {/* Bottom Navigation */}
-            <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200">
+            <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">
                 <div className="flex items-center justify-around px-2 py-3">
                     <button
                         onClick={() => handleTabChange("chat")}
-                        className={`flex flex-col items-center gap-1 px-3 py-2 transition-colors cursor-pointer ${activeTab === "chat" ? "text-black" : "text-gray-400"
+                        className={`flex flex-col items-center gap-1 px-3 py-2 transition-colors cursor-pointer min-w-0 flex-1 ${activeTab === "chat" ? "text-black" : "text-gray-400"
                             }`}
                     >
                         <MessageSquare className="w-5 h-5" />
@@ -99,7 +99,7 @@ export default function Home() {
                     </button>
                     <button
                         onClick={() => handleTabChange("overview")}
-                        className={`flex flex-col items-center gap-1 px-3 py-2 transition-colors cursor-pointer ${activeTab === "overview" ? "text-black" : "text-gray-400"
+                        className={`flex flex-col items-center gap-1 px-3 py-2 transition-colors cursor-pointer min-w-0 flex-1 ${activeTab === "overview" ? "text-black" : "text-gray-400"
                             }`}
                     >
                         <LayoutDashboard className="w-5 h-5" />
@@ -107,7 +107,7 @@ export default function Home() {
                     </button>
                     <button
                         onClick={() => handleTabChange("transactions")}
-                        className={`flex flex-col items-center gap-1 px-3 py-2 transition-colors cursor-pointer ${activeTab === "transactions" ? "text-black" : "text-gray-400"
+                        className={`flex flex-col items-center gap-1 px-3 py-2 transition-colors cursor-pointer min-w-0 flex-1 ${activeTab === "transactions" ? "text-black" : "text-gray-400"
                             }`}
                     >
                         <List className="w-5 h-5" />
@@ -115,7 +115,7 @@ export default function Home() {
                     </button>
                     <button
                         onClick={() => handleTabChange("profile")}
-                        className={`flex flex-col items-center gap-1 px-3 py-2 transition-colors cursor-pointer ${activeTab === "profile" ? "text-black" : "text-gray-400"
+                        className={`flex flex-col items-center gap-1 px-3 py-2 transition-colors cursor-pointer min-w-0 flex-1 ${activeTab === "profile" ? "text-black" : "text-gray-400"
                             }`}
                     >
                         <User className="w-5 h-5" />
@@ -123,6 +123,8 @@ export default function Home() {
                     </button>
                 </div>
             </div>
+
+            <div className="h-16 flex-shrink-0"></div>
         </div>
     );
 }
