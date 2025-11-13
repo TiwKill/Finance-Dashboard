@@ -59,6 +59,7 @@ export function ChatTab() {
     const [inputValue, setInputValue] = useState("");
     const [isListening, setIsListening] = useState(false);
     const [speechSupported, setSpeechSupported] = useState(true);
+    const [interimText, setInterimText] = useState("");
     const recognitionRef = useRef<SpeechRecognition | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -81,13 +82,15 @@ export function ChatTab() {
         }
 
         const recognition = new SpeechRecognition();
-        recognition.continuous = false;
+        // ตั้งค่าให้ continuous เป็น true เพื่อรับเสียงต่อเนื่อง
+        recognition.continuous = true;
         recognition.interimResults = true;
         recognition.lang = 'th-TH';
 
         recognition.onstart = () => {
             setIsListening(true);
             setInputValue("");
+            setInterimText("");
         };
 
         recognition.onresult = (event: SpeechRecognitionEvent) => {
@@ -103,16 +106,25 @@ export function ChatTab() {
                 }
             }
 
+            // อัพเดทข้อความชั่วคราว
+            if (interimTranscript) {
+                setInterimText(interimTranscript);
+            }
+
+            // เมื่อมีข้อความสุดท้าย ให้เพิ่มเข้าไปใน inputValue
             if (finalTranscript) {
-                setInputValue(finalTranscript);
-            } else {
-                setInputValue(interimTranscript);
+                setInputValue(prev => {
+                    const newValue = prev ? `${prev} ${finalTranscript}` : finalTranscript;
+                    return newValue.trim();
+                });
+                setInterimText(""); // ล้างข้อความชั่วคราว
             }
         };
 
         recognition.onerror = (event: any) => {
             console.error('Speech recognition error:', event.error);
             setIsListening(false);
+            setInterimText("");
 
             if (event.error === 'not-allowed') {
                 console.error('กรุณาอนุญาตการใช้งานไมโครโฟนใน browser');
@@ -120,9 +132,12 @@ export function ChatTab() {
         };
 
         recognition.onend = () => {
-            setIsListening(false);
-            if (inputValue.trim()) {
-                handleSend(inputValue);
+            // ไม่ต้องทำอะไรเมื่อจบ เพราะเราต้องการให้ผู้ใช้กดหยุดเอง
+            // ถ้าเกิดการหยุดโดยไม่ตั้งใจ (เช่น error) ให้ reset state
+            if (isListening) {
+                console.log('Speech recognition ended unexpectedly');
+                setIsListening(false);
+                setInterimText("");
             }
         };
 
@@ -133,7 +148,7 @@ export function ChatTab() {
                 recognitionRef.current.stop();
             }
         };
-    }, [inputValue]);
+    }, []); // เอา inputValue ออกจาก dependencies
 
     const startListening = () => {
         if (!speechSupported) {
@@ -144,16 +159,35 @@ export function ChatTab() {
         if (isListening || !recognitionRef.current) return;
 
         try {
+            setInputValue("");
+            setInterimText("");
             recognitionRef.current.start();
         } catch (error) {
             console.error('Error starting speech recognition:', error);
             setIsListening(false);
+            setInterimText("");
         }
     };
 
     const stopListening = () => {
         if (recognitionRef.current && isListening) {
-            recognitionRef.current.stop();
+            try {
+                recognitionRef.current.stop();
+                setIsListening(false);
+                
+                // ถ้ามีข้อความชั่วคราว ให้เพิ่มเข้าไปใน input
+                if (interimText.trim()) {
+                    setInputValue(prev => {
+                        const newValue = prev ? `${prev} ${interimText}` : interimText;
+                        return newValue.trim();
+                    });
+                }
+                setInterimText("");
+            } catch (error) {
+                console.error('Error stopping speech recognition:', error);
+                setIsListening(false);
+                setInterimText("");
+            }
         }
     };
 
@@ -162,6 +196,7 @@ export function ChatTab() {
 
         await sendMessage(textToSend);
         setInputValue("");
+        setInterimText("");
     };
 
     const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -173,7 +208,11 @@ export function ChatTab() {
 
     const handleQuickExampleClick = (example: string) => {
         setInputValue(example);
+        setInterimText("");
     };
+
+    // แสดงข้อความรวมระหว่าง inputValue และ interimText
+    const displayText = interimText ? `${inputValue} ${interimText}`.trim() : inputValue;
 
     return (
         <div className="flex flex-col h-[calc(100vh-140px)] bg-white">
@@ -198,7 +237,7 @@ export function ChatTab() {
                                         key={index}
                                         onClick={() => handleQuickExampleClick(example)}
                                         className="text-sm bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg px-4 py-3 text-gray-700 transition-colors duration-200 text-left"
-                                        disabled={isProcessing}
+                                        disabled={isProcessing || isListening}
                                     >
                                         {example}
                                     </button>
@@ -279,12 +318,15 @@ export function ChatTab() {
                     {/* Text Input */}
                     <div className="flex-1 relative">
                         <Input
-                            value={inputValue}
-                            onChange={(e) => setInputValue(e.target.value)}
+                            value={displayText}
+                            onChange={(e) => {
+                                setInputValue(e.target.value);
+                                setInterimText(""); // ล้าง interim text เมื่อผู้ใช้พิมพ์เอง
+                            }}
                             onKeyPress={handleKeyPress}
                             placeholder={
                                 isListening
-                                    ? "กำลังฟังเสียง... พูดตอนนี้"
+                                    ? "กำลังฟังเสียง... พูดได้เลย"
                                     : speechSupported
                                         ? "พิมพ์รายรับหรือรายจ่าย หรือกดไมค์เพื่อพูด..."
                                         : "พิมพ์รายรับหรือรายจ่าย..."
@@ -305,14 +347,23 @@ export function ChatTab() {
 
                     {/* Send Button */}
                     <Button
-                        onClick={() => handleSend(inputValue)}
-                        disabled={!inputValue.trim() || isListening || isProcessing}
+                        onClick={() => handleSend(displayText)}
+                        disabled={!displayText.trim() || isListening || isProcessing}
                         size="icon"
                         className="bg-black text-white hover:bg-gray-800 disabled:bg-gray-300 disabled:text-gray-500"
                     >
                         <Send className="w-4 h-4" />
                     </Button>
                 </div>
+
+                {/* Status Message */}
+                {isListening && (
+                    <div className="mt-2 text-center">
+                        <p className="text-sm text-red-500 animate-pulse">
+                            🎤 กำลังฟังเสียง... กดปุ่มหยุดเมื่อพูดเสร็จ
+                        </p>
+                    </div>
+                )}
 
                 {/* Browser Support Warning */}
                 {!speechSupported && (
